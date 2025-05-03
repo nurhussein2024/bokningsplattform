@@ -1,13 +1,13 @@
 const User = require('../models/User');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs'); // Använder bcryptjs för lösenordskryptering
 const jwt = require('jsonwebtoken');
 
-// Registrera ny användare
+// Registrera en ny användare
 const register = async (req, res) => {
   try {
     const { username, password, role } = req.body;
 
-    // Kontrollera om användarnamn redan finns
+    // Kontrollera om användarnamnet redan finns
     const existingUser = await User.findOne({ username });
     if (existingUser) {
       return res.status(400).json({ message: 'Användarnamn finns redan' });
@@ -16,7 +16,7 @@ const register = async (req, res) => {
     // Kryptera lösenordet
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Skapa användaren
+    // Skapa en ny användare och spara i databasen
     const newUser = new User({ username, password: hashedPassword, role });
     await newUser.save();
 
@@ -26,28 +26,28 @@ const register = async (req, res) => {
   }
 };
 
-// Logga in användare
+// Logga in en användare
 const login = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Hämta användaren
+    // Hämta användaren från databasen
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(401).json({ message: 'Ogiltigt användarnamn eller lösenord' });
     }
 
-    // Jämför lösenord
+    // Jämför det angivna lösenordet med det hashade lösenordet i databasen
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Ogiltigt användarnamn eller lösenord' });
     }
 
-    // Skapa JWT-token
+    // Skapa en JWT-token för autentisering
     const token = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' } // Giltig i 1 dag
+      { expiresIn: '1d' } // Tokenen är giltig i 1 dag
     );
 
     res.status(200).json({ token });
