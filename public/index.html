@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <title>Bokningsplattform</title>
+  <!-- Ladda Socket.io-klientbiblioteket -->
+  <script src="http://localhost:5000/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <h1>Välkommen till Nur bokningsplattformen</h1>
+  <div id="notifications" style="color: green; font-weight: bold;"></div>
+
+  <script>
+    // Anslut till Socket.io-servern
+    const socket = io('http://localhost:5000');
+
+    // Lyssna på inkommande bokningsnotifikationer
+    socket.on('bookingNotification', (message) => {
+      const container = document.getElementById('notifications');
+      container.textContent = message; // Visa meddelandet i gränssnittet
+      alert(message); // Visa en popup också
+    });
+  </script>
+</body>
+</html>
