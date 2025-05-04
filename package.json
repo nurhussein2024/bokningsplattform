@@ -16,6 +16,7 @@
   ],
   "author": "Nurhussein",
   "license": "ISC",
+  "type": "commonjs",
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",

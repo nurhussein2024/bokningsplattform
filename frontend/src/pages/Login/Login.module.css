@@ -1,0 +1,48 @@
+/* Container för inloggningssidan */
+.loginContainer {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 32px;
+    background-color: #f4f4f4;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Rubrikstil */
+  h2 {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  
+  /* Stil för formuläret */
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  /* Stil för input-fälten */
+  input {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+  }
+  
+  /* Stil för knappen */
+  button {
+    padding: 12px;
+    background-color: #1a1a2e;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+  }
+  
+  /* Hover-effekt för knappen */
+  button:hover {
+    background-color: #00c3ff;
+  }
+  
