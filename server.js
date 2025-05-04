@@ -50,5 +50,5 @@ app.use('/api/auth', authRoutes); // Rutt för inloggning/registrering
 // Starta servern
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`🚀 Hej Nur! Servern körs på port ${PORT}`);
+  console.log(`🚀 Hej Nur hur mår du idag! Servern körs på port ${PORT}`);
 });
