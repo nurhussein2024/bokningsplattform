@@ -1,31 +1,27 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-// Inloggningssida för användare
-const Login = () => {
+// Registreringssida för nya användare
+const Register = () => {
   const navigate = useNavigate();
-
-  // Tillstånd för formulärdata
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: ""
   });
 
-  // Felmeddelande om något går fel
   const [error, setError] = useState("");
 
-  // Uppdaterar formulärdata när användaren skriver
+  // Hanterar inmatningsändringar
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Hanterar formulärinlämningen
+  // Skickar registreringsförfrågan till servern
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
-      // Skicka en POST-förfrågan till backend för inloggning
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -35,14 +31,9 @@ const Login = () => {
 
       const data = await response.json();
 
-      // Om inloggningen misslyckas, kasta fel
-      if (!response.ok) throw new Error(data.message || "Inloggning misslyckades");
+      if (!response.ok) throw new Error(data.message || "Registrering misslyckades");
 
-      // Spara token i localStorage
-      localStorage.setItem("token", data.token);
-
-      // Skicka användaren till startsidan eller dashboard
-      navigate("/");
+      navigate("/login"); // Skickar användaren till inloggningssidan
     } catch (err: any) {
       setError(err.message);
     }
@@ -51,13 +42,18 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Logga in</h2>
-
-        {/* Visa felmeddelande om det finns något */}
+        <h2 className="text-2xl font-bold mb-6 text-center">Skapa konto</h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
-
-        {/* Inloggningsformuläret */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            name="name"
+            placeholder="Namn"
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full border p-2 rounded-md"
+            required
+          />
           <input
             type="email"
             name="email"
@@ -80,20 +76,15 @@ const Login = () => {
             type="submit"
             className="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700"
           >
-            Logga in
+            Registrera
           </button>
         </form>
-
-        {/* Länk till registreringssidan */}
         <p className="text-sm text-center mt-4">
-          Har du inget konto?{" "}
-          <a href="/register" className="text-blue-600 hover:underline">
-            Registrera dig här
-          </a>
+          Har du redan ett konto? <a href="/login" className="text-blue-600 hover:underline">Logga in här</a>
         </p>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default Register;
