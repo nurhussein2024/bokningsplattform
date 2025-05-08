@@ -47,7 +47,7 @@ const login = async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' } // Tokenen är giltig i 1 dag
+      { expiresIn: '1d' } // Tokenen är giltig i 1 dag sedan man behöver nya Token man kan byta den till sek om man vill testa .
     );
 
     res.status(200).json({ token });
