@@ -7,6 +7,11 @@ const register = async (req, res) => {
   try {
     const { username, password, role } = req.body;
 
+    // Kontrollera att alla fält är ifyllda
+    if (!username || !password || !role) {
+      return res.status(400).json({ message: 'Alla fält är obligatoriska' });
+    }
+
     // Kontrollera om användarnamnet redan finns
     const existingUser = await User.findOne({ username });
     if (existingUser) {
@@ -22,6 +27,7 @@ const register = async (req, res) => {
 
     res.status(201).json({ message: 'Användare registrerad' });
   } catch (error) {
+    console.error(error); // För felsökning
     res.status(500).json({ message: 'Serverfel vid registrering' });
   }
 };
@@ -30,6 +36,11 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { username, password } = req.body;
+
+    // Kontrollera att användarnamn och lösenord är ifyllda
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Användarnamn och lösenord krävs' });
+    }
 
     // Hämta användaren från databasen
     const user = await User.findOne({ username });
@@ -47,11 +58,18 @@ const login = async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' } // Tokenen är giltig i 1 dag sedan man behöver nya Token man kan byta den till sek om man vill testa .
+      { expiresIn: '1d' } // Tokenen är giltig i 1 dag
     );
 
-    res.status(200).json({ token });
+    res.status(200).json({
+      token,
+      user: {
+        username: user.username,
+        role: user.role
+      }
+    });
   } catch (error) {
+    console.error(error); // För felsökning
     res.status(500).json({ message: 'Serverfel vid inloggning' });
   }
 };

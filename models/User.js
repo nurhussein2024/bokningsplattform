@@ -5,7 +5,9 @@ const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
-    unique: true // Användarnamn måste vara unikt
+    unique: true, // Användarnamn måste vara unikt
+    trim: true, // Tar bort onödiga mellanslag
+    minlength: 3 // Minsta antal tecken
   },
   password: {
     type: String,
@@ -17,7 +19,8 @@ const userSchema = new mongoose.Schema({
     default: 'User' // Standardrollen är "User"
   }
 }, {
-  timestamps: true // Skapa createdAt och updatedAt automatiskt
+  timestamps: true // Skapar createdAt och updatedAt automatiskt
 });
 
+// Exportera modellen
 module.exports = mongoose.model('User', userSchema);
