@@ -53,5 +53,5 @@ app.use('/api/auth', authRoutes);
 // Starta servern på den angivna porten eller port 5000
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Servern körs på port ${PORT}`); // Bekräfta att servern är igång
+  console.log(`🚀 Hej Nur Servern körs på port ${PORT}`); // Bekräfta att servern är igång
 });

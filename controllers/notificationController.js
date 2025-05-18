@@ -1,7 +1,7 @@
 const io = require('socket.io-client');
 const Booking = require('../models/Booking');
 
-// Skicka notifiering till alla användare när en bokning sker
+// Den har koden Skicka notifiering till alla användare när en bokning sker
 const sendNotification = (message) => {
   // Sänder ett meddelande till alla anslutna användare via WebSocket
   io.emit('bookingNotification', message);  // Meddelandet som skickas till alla anslutna användare
