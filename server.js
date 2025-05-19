@@ -1,6 +1,6 @@
 // server.js
 
-// Ladda miljövariabler från .env
+// Ladda miljövariabler från .env-filen
 require('dotenv').config();
 
 const express = require('express');
@@ -10,6 +10,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
 
+// Importera routes och middleware
 const bookingRoutes = require('./routes/bookingRoutes');
 const roomRoutes = require('./routes/roomRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -17,41 +18,43 @@ const { authenticateToken } = require('./middleware/authMiddleware');
 
 const app = express();
 const server = http.createServer(app);
+
+// Konfigurera Socket.IO med CORS-inställningar
 const io = socketIo(server, {
   cors: {
-    origin: '*', // Tillåter förfrågningar från alla ursprung (kan justeras vid behov)
+    origin: '*', // Tillåt alla ursprung – justera vid behov för säkerhet
     methods: ['GET', 'POST']
   }
 });
 
-// Middleware för att hantera CORS och JSON-förfrågningar
+// Middleware för CORS och JSON-hantering
 app.use(cors());
 app.use(express.json());
 
-// Servera statiska filer från 'public' mappen
+// Servera statiska filer från "public"-mappen
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Anslut till MongoDB Atlas utan de föråldrade alternativen
+// Anslut till MongoDB med konfiguration från .env
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ Ansluten till MongoDB Atlas')) // Bekräfta att anslutningen lyckades
-  .catch((error) => console.error('❌ Fel vid anslutning till MongoDB Atlas:', error)); // Hantera fel vid anslutning
+  .then(() => console.log('✅ Ansluten till MongoDB Atlas'))
+  .catch((error) => console.error('❌ Fel vid anslutning till MongoDB:', error));
 
 // Hantera WebSocket-anslutningar
 io.on('connection', (socket) => {
-  console.log('🔌 Användare ansluten:', socket.id); // Logga när en användare ansluter
+  console.log('🔌 Användare ansluten:', socket.id);
 
   socket.on('disconnect', () => {
-    console.log('❎ Användare frånkopplad:', socket.id); // Logga när en användare frånkopplas
+    console.log('❎ Användare frånkopplad:', socket.id);
   });
 });
 
-// Registrera API-rutter för bokningar, rum och autentisering
-app.use('/api/bookings', authenticateToken, bookingRoutes);
-app.use('/api/rooms', authenticateToken, roomRoutes);
-app.use('/api/auth', authRoutes);
+// API-rutter
+app.use('/api/auth', authRoutes); // Auth-rutter kräver ingen token
+app.use('/api/bookings', authenticateToken, bookingRoutes); // Skyddade rutter
+app.use('/api/rooms', authenticateToken, roomRoutes);       // Skyddade rutter
 
-// Starta servern på den angivna porten eller port 5000
+// Starta servern på angiven port
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Hej Nur Servern körs på port ${PORT}`); // Bekräfta att servern är igång
+  console.log(`🚀 Hej Nur! Servern körs på port ${PORT}`);
 });
