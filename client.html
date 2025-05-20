@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Booking Notifications</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    .log { background: white; border-radius: 8px; padding: 15px; max-width: 600px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .event { margin-bottom: 10px; border-left: 4px solid #007bff; padding-left: 10px; }
+    .event.updated { border-color: orange; }
+    .event.deleted { border-color: red; }
+  </style>
+</head>
+<body>
+  <h2>🔔 Live Booking Notifications</h2>
+  <div class="log" id="log"></div>
+
+  <script>
+    const socket = io('http://localhost:5000'); // غير البورت إذا لزم
+
+    const log = document.getElementById('log');
+
+    const addLog = (type, data) => {
+      const div = document.createElement('div');
+      div.className = `event ${type}`;
+      div.innerHTML = `<strong>${type.toUpperCase()}</strong>:<br><pre>${JSON.stringify(data, null, 2)}</pre>`;
+      log.prepend(div);
+    };
+
+    socket.on('connect', () => {
+      addLog('info', '🔌 Ansluten till servern via Socket.IO');
+    });
+
+    socket.on('bookingCreated', (data) => {
+      addLog('created', data);
+    });
+
+    socket.on('bookingUpdated', (data) => {
+      addLog('updated', data);
+    });
+
+    socket.on('bookingDeleted', (id) => {
+      addLog('deleted', { id });
+    });
+
+    socket.on('disconnect', () => {
+      addLog('info', '❌ Frånkopplad från servern');
+    });
+  </script>
+</body>
+</html>

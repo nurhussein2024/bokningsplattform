@@ -7,11 +7,10 @@ const createBooking = async (req, res) => {
     const { roomId, startTime, endTime } = req.body;
     const userId = req.user.userId;
 
-    // Kontrollera om rummet redan är bokat under samma tid
     const existingBooking = await Booking.findOne({
       roomId,
       $or: [
-        { startTime: { $lt: endTime }, endTime: { $gt: startTime } } // Tid överlappar
+        { startTime: { $lt: endTime }, endTime: { $gt: startTime } }
       ]
     });
 
@@ -19,9 +18,12 @@ const createBooking = async (req, res) => {
       return res.status(400).json({ message: 'Rummet är redan bokat för den här tiden' });
     }
 
-    // Skapa bokningen
     const newBooking = new Booking({ roomId, userId, startTime, endTime });
     await newBooking.save();
+
+    // ⏱️ Real-time notification
+    const io = req.app.get('io');
+    io.emit('bookingCreated', newBooking);
 
     res.status(201).json({ message: 'Bokning skapad', booking: newBooking });
   } catch (error) {
@@ -30,14 +32,14 @@ const createBooking = async (req, res) => {
   }
 };
 
-// 📌 Hämta bokningar – användare ser sina, admin ser alla
+// 📌 Hämta bokningar
 const getBookings = async (req, res) => {
   try {
     const { userId, role } = req.user;
 
     const bookings = role === 'Admin'
-      ? await Booking.find().populate('roomId') // Admin ser alla bokningar
-      : await Booking.find({ userId }).populate('roomId'); // Vanlig användare ser sina bokningar
+      ? await Booking.find().populate('roomId')
+      : await Booking.find({ userId }).populate('roomId');
 
     res.status(200).json(bookings);
   } catch (error) {
@@ -58,14 +60,12 @@ const updateBooking = async (req, res) => {
       return res.status(404).json({ message: 'Bokning inte funnen' });
     }
 
-    // Endast ägare eller admin får uppdatera
     if (booking.userId.toString() !== userId && role !== 'Admin') {
       return res.status(403).json({ message: 'Du har inte rätt att ändra denna bokning' });
     }
 
-    // Kontrollera om den nya tiden krockar med en annan bokning
     const conflictingBooking = await Booking.findOne({
-      _id: { $ne: booking._id }, // Exkludera nuvarande bokning
+      _id: { $ne: booking._id },
       roomId: booking.roomId,
       $or: [
         { startTime: { $lt: endTime }, endTime: { $gt: startTime } }
@@ -76,10 +76,13 @@ const updateBooking = async (req, res) => {
       return res.status(400).json({ message: 'Rummet är redan bokat för den här tiden' });
     }
 
-    // Uppdatera tiden
     booking.startTime = startTime;
     booking.endTime = endTime;
     await booking.save();
+
+    // ⏱️ Real-time notification
+    const io = req.app.get('io');
+    io.emit('bookingUpdated', booking);
 
     res.status(200).json({ message: 'Bokning uppdaterad', booking });
   } catch (error) {
@@ -99,12 +102,15 @@ const deleteBooking = async (req, res) => {
       return res.status(404).json({ message: 'Bokning inte funnen' });
     }
 
-    // Endast ägare eller admin får ta bort
     if (booking.userId.toString() !== userId && role !== 'Admin') {
       return res.status(403).json({ message: 'Du har inte rätt att ta bort denna bokning' });
     }
 
-    await booking.deleteOne(); // 💡 Bättre än .remove() som är föråldrat
+    await booking.deleteOne();
+
+    // ⏱️ Real-time notification
+    const io = req.app.get('io');
+    io.emit('bookingDeleted', id);
 
     res.status(200).json({ message: 'Bokning borttagen' });
   } catch (error) {
