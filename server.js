@@ -17,6 +17,7 @@ const { authenticateToken } = require('./middleware/authMiddleware');
 const app = express();
 const server = http.createServer(app);
 
+// Skapa en Socket.IO-instans med CORS-inställningar
 const io = socketIo(server, {
   cors: {
     origin: '*',
@@ -24,18 +25,19 @@ const io = socketIo(server, {
   }
 });
 
-// Store io instance in app for access inside controllers
+// Spara io-instansen i app för att kunna använda den i controllers
 app.set('io', io);
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Anslut till MongoDB med konfiguration från .env
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ Ansluten till MongoDB Atlas'))
   .catch((error) => console.error('❌ Fel vid anslutning till MongoDB:', error));
 
-// Handle socket connections
+// Hantera WebSocket-anslutningar
 io.on('connection', (socket) => {
   console.log('🔌 Användare ansluten:', socket.id);
 
@@ -44,11 +46,12 @@ io.on('connection', (socket) => {
   });
 });
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/bookings', authenticateToken, bookingRoutes);
-app.use('/api/rooms', authenticateToken, roomRoutes);
+// API-rutter
+app.use('/api/auth', authRoutes); // Auth-rutter kräver ingen token
+app.use('/api/bookings', authenticateToken, bookingRoutes); // Skyddade rutter
+app.use('/api/rooms', authenticateToken, roomRoutes);       // Skyddade rutter
 
+// Starta servern på angiven port
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Hej Nur! Servern körs på port ${PORT}`);
