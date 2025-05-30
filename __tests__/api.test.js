@@ -7,7 +7,7 @@ let bookingId = '';
 
 describe('🧪 Tester för Bokningsplattformens API', () => {
 
-  // Registrera en ny användare
+  // Registrera en ny användare (kan vara testdata)
   test('✅ Registrera användare', async () => {
     const res = await request(appUrl)
       .post('/api/auth/register')
@@ -20,17 +20,17 @@ describe('🧪 Tester för Bokningsplattformens API', () => {
   test('✅ Logga in som admin', async () => {
     const res = await request(appUrl)
       .post('/api/auth/login')
-      .send({ username: 'admin', password: 'admin123' }); // Byt till ditt riktiga adminkonto
+      .send({ username: 'admin', password: 'admin123' });
 
     expect(res.statusCode).toBe(200);
     adminToken = res.body.token;
   });
 
-  // Logga in som användare
+  // Logga in som användare (Mariaplan)
   test('✅ Logga in som användare', async () => {
     const res = await request(appUrl)
       .post('/api/auth/login')
-      .send({ username: 'testuser', password: '123456' });
+      .send({ username: 'Mariaplan', password: 'password1234' });
 
     expect(res.statusCode).toBe(200);
     userToken = res.body.token;
