@@ -2,7 +2,7 @@ const Booking = require('../models/Booking');
 const Room = require('../models/Room');
 const User = require('../models/User');
 
-// 📌 إنشاء حجز
+//  Skapa en ny bokning
 const createBooking = async (req, res) => {
   if (!req.user || !req.user.userId) {
     console.error("Missing user in request. JWT may be invalid or missing.");
@@ -13,11 +13,11 @@ const createBooking = async (req, res) => {
   const userId = req.user.userId;
 
   try {
+    // Kontrollera om det finns en överlappande bokning
     const existingBooking = await Booking.findOne({
       roomId,
-      $or: [
-        { startTime: { $lt: endTime }, endTime: { $gt: startTime } }
-      ]
+      startTime: { $lt: endTime },
+      endTime: { $gt: startTime }
     });
 
     if (existingBooking) {
@@ -38,22 +38,25 @@ const createBooking = async (req, res) => {
   }
 };
 
-// 📌 Hämta bokningar
+//  Hämta bokningar
 const getBookings = async (req, res) => {
   try {
     const userId = req.user.userId;
     const role = req.user.role;
 
     const query = role === 'Admin' ? {} : { userId };
-    const bookings = await Booking.find(query).populate('roomId').populate('userId');
+    const bookings = await Booking.find(query)
+      .populate('roomId')
+      .populate('userId');
+
     res.status(200).json(bookings);
   } catch (error) {
-    console.error(error);
+    console.error("Fel vid hämtning av bokningar:", error.message);
     res.status(500).json({ message: 'Serverfel vid hämtning av bokningar' });
   }
 };
 
-// 📌 Uppdatera bokning
+//  Uppdatera bokning
 const updateBooking = async (req, res) => {
   try {
     const bookingId = req.params.id;
@@ -77,12 +80,12 @@ const updateBooking = async (req, res) => {
 
     res.status(200).json({ message: 'Bokning uppdaterad', booking });
   } catch (error) {
-    console.error(error);
+    console.error("Fel vid uppdatering av bokning:", error.message);
     res.status(500).json({ message: 'Serverfel vid uppdatering av bokning' });
   }
 };
 
-// 📌 Ta bort bokning
+//  Ta bort bokning
 const deleteBooking = async (req, res) => {
   try {
     const bookingId = req.params.id;
@@ -102,7 +105,7 @@ const deleteBooking = async (req, res) => {
 
     res.status(200).json({ message: 'Bokning borttagen' });
   } catch (error) {
-    console.error(error);
+    console.error("Fel vid borttagning av bokning:", error.message);
     res.status(500).json({ message: 'Serverfel vid borttagning av bokning' });
   }
 };
