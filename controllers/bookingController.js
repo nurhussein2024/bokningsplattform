@@ -1,12 +1,18 @@
 const Booking = require('../models/Booking');
 const Room = require('../models/Room');
+const User = require('../models/User');
 
-// 📌 Skapa en ny bokning
+// 📌 إنشاء حجز
 const createBooking = async (req, res) => {
-  try {
-    const { roomId, startTime, endTime } = req.body;
-    const userId = req.user.userId;
+  if (!req.user || !req.user.userId) {
+    console.error("Missing user in request. JWT may be invalid or missing.");
+    return res.status(401).json({ message: 'Obehörig begäran: ingen användare identifierad' });
+  }
 
+  const { roomId, startTime, endTime } = req.body;
+  const userId = req.user.userId;
+
+  try {
     const existingBooking = await Booking.findOne({
       roomId,
       $or: [
@@ -21,13 +27,13 @@ const createBooking = async (req, res) => {
     const newBooking = new Booking({ roomId, userId, startTime, endTime });
     await newBooking.save();
 
-    // ⏱️ Real-time notification
     const io = req.app.get('io');
     io.emit('bookingCreated', newBooking);
 
     res.status(201).json({ message: 'Bokning skapad', booking: newBooking });
   } catch (error) {
-    console.error(error);
+    console.error("Fel i createBooking:", error.message);
+    console.error(error.stack);
     res.status(500).json({ message: 'Serverfel vid skapande av bokning' });
   }
 };
@@ -35,12 +41,11 @@ const createBooking = async (req, res) => {
 // 📌 Hämta bokningar
 const getBookings = async (req, res) => {
   try {
-    const { userId, role } = req.user;
+    const userId = req.user.userId;
+    const role = req.user.role;
 
-    const bookings = role === 'Admin'
-      ? await Booking.find().populate('roomId')
-      : await Booking.find({ userId }).populate('roomId');
-
+    const query = role === 'Admin' ? {} : { userId };
+    const bookings = await Booking.find(query).populate('roomId').populate('userId');
     res.status(200).json(bookings);
   } catch (error) {
     console.error(error);
@@ -48,39 +53,25 @@ const getBookings = async (req, res) => {
   }
 };
 
-// 📌 Uppdatera en bokning
+// 📌 Uppdatera bokning
 const updateBooking = async (req, res) => {
   try {
-    const { id } = req.params;
+    const bookingId = req.params.id;
     const { startTime, endTime } = req.body;
-    const { userId, role } = req.user;
 
-    const booking = await Booking.findById(id);
+    const booking = await Booking.findById(bookingId);
     if (!booking) {
-      return res.status(404).json({ message: 'Bokning inte funnen' });
+      return res.status(404).json({ message: 'Bokning hittades inte' });
     }
 
-    if (booking.userId.toString() !== userId && role !== 'Admin') {
-      return res.status(403).json({ message: 'Du har inte rätt att ändra denna bokning' });
-    }
-
-    const conflictingBooking = await Booking.findOne({
-      _id: { $ne: booking._id },
-      roomId: booking.roomId,
-      $or: [
-        { startTime: { $lt: endTime }, endTime: { $gt: startTime } }
-      ]
-    });
-
-    if (conflictingBooking) {
-      return res.status(400).json({ message: 'Rummet är redan bokat för den här tiden' });
+    if (req.user.role !== 'Admin' && booking.userId.toString() !== req.user.userId) {
+      return res.status(403).json({ message: 'Du har inte behörighet att uppdatera denna bokning' });
     }
 
     booking.startTime = startTime;
     booking.endTime = endTime;
     await booking.save();
 
-    // ⏱️ Real-time notification
     const io = req.app.get('io');
     io.emit('bookingUpdated', booking);
 
@@ -91,26 +82,23 @@ const updateBooking = async (req, res) => {
   }
 };
 
-// 📌 Ta bort en bokning
+// 📌 Ta bort bokning
 const deleteBooking = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { userId, role } = req.user;
-
-    const booking = await Booking.findById(id);
+    const bookingId = req.params.id;
+    const booking = await Booking.findById(bookingId);
     if (!booking) {
-      return res.status(404).json({ message: 'Bokning inte funnen' });
+      return res.status(404).json({ message: 'Bokning hittades inte' });
     }
 
-    if (booking.userId.toString() !== userId && role !== 'Admin') {
-      return res.status(403).json({ message: 'Du har inte rätt att ta bort denna bokning' });
+    if (req.user.role !== 'Admin' && booking.userId.toString() !== req.user.userId) {
+      return res.status(403).json({ message: 'Du har inte behörighet att ta bort denna bokning' });
     }
 
-    await booking.deleteOne();
+    await Booking.findByIdAndDelete(bookingId);
 
-    // ⏱️ Real-time notification
     const io = req.app.get('io');
-    io.emit('bookingDeleted', id);
+    io.emit('bookingDeleted', { bookingId });
 
     res.status(200).json({ message: 'Bokning borttagen' });
   } catch (error) {
