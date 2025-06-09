@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const Booking = require('../models/Booking');
 const Room = require('../models/Room');
 
@@ -13,18 +12,15 @@ const createBooking = async (req, res) => {
     const { roomId, startTime, endTime } = req.body;
     const userId = req.user.userId;
 
-    // 🛠️ Konvertera roomId till ett giltigt ObjectId
-    const roomObjectId = new mongoose.Types.ObjectId(roomId);
-
     // 🔎 Kontrollera om rummet existerar
-    const room = await Room.findById(roomObjectId);
+    const room = await Room.findOne({ _id: roomId });
     if (!room) {
       return res.status(404).json({ message: 'Rummet hittades inte' });
     }
 
     // ⛔ Kontrollera om rummet redan är bokat under vald tid
     const overlappingBooking = await Booking.findOne({
-      roomId: roomObjectId,
+      roomId: roomId,
       $or: [
         {
           startTime: { $lt: new Date(endTime) },
@@ -39,7 +35,7 @@ const createBooking = async (req, res) => {
 
     // ✅ Skapa och spara den nya bokningen
     const newBooking = new Booking({
-      roomId: roomObjectId,
+      roomId,
       userId,
       startTime,
       endTime
