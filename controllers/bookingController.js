@@ -1,9 +1,11 @@
+const mongoose = require('mongoose');
 const Booking = require('../models/Booking');
 const Room = require('../models/Room');
 
-// 📌 Skapar en bokning
+// 📌 Skapa en ny bokning och spara i databasen
 const createBooking = async (req, res) => {
   try {
+    // Kontrollera att användaren är autentiserad
     if (!req.user || !req.user.userId) {
       return res.status(401).json({ message: 'Obehörig begäran: ingen användare identifierad' });
     }
@@ -11,15 +13,18 @@ const createBooking = async (req, res) => {
     const { roomId, startTime, endTime } = req.body;
     const userId = req.user.userId;
 
-    // Kontrollera att rummet finns
-    const room = await Room.findById(roomId);
+    // 🛠️ Konvertera roomId till ett giltigt ObjectId
+    const roomObjectId = new mongoose.Types.ObjectId(roomId);
+
+    // 🔎 Kontrollera om rummet existerar
+    const room = await Room.findById(roomObjectId);
     if (!room) {
       return res.status(404).json({ message: 'Rummet hittades inte' });
     }
 
-    // Kontrollera om rummet redan är bokat
+    // ⛔ Kontrollera om rummet redan är bokat under vald tid
     const overlappingBooking = await Booking.findOne({
-      roomId,
+      roomId: roomObjectId,
       $or: [
         {
           startTime: { $lt: new Date(endTime) },
@@ -32,9 +37,9 @@ const createBooking = async (req, res) => {
       return res.status(400).json({ message: 'Rummet är upptaget under vald tid' });
     }
 
-    // Skapa ny bokning
+    // ✅ Skapa och spara den nya bokningen
     const newBooking = new Booking({
-      roomId,
+      roomId: roomObjectId,
       userId,
       startTime,
       endTime
@@ -46,30 +51,32 @@ const createBooking = async (req, res) => {
       message: 'Bokning skapad',
       booking: newBooking
     });
-
   } catch (error) {
-    console.error('❌ Fel i createBooking:', error);
+    console.error('❌ Fel vid skapande av bokning:', error);
     return res.status(500).json({ message: 'Serverfel vid skapande av bokning' });
   }
 };
 
-// 📌 Hämtar alla bokningar för admin eller användarens egna bokningar
+// 📌 Hämta bokningar (för användare eller admin)
 const getBookings = async (req, res) => {
   try {
     const userId = req.user.userId;
     const role = req.user.role;
 
     const query = role === 'Admin' ? {} : { userId };
-    const bookings = await Booking.find(query).populate('roomId').populate('userId');
+
+    const bookings = await Booking.find(query)
+      .populate('roomId')
+      .populate('userId');
 
     return res.status(200).json(bookings);
   } catch (error) {
-    console.error('❌ Fel i getBookings:', error);
+    console.error('❌ Fel vid hämtning av bokningar:', error);
     return res.status(500).json({ message: 'Serverfel vid hämtning av bokningar' });
   }
 };
 
-// 📌 Uppdaterar en befintlig bokning
+// 📌 Uppdatera en befintlig bokning
 const updateBooking = async (req, res) => {
   try {
     const bookingId = req.params.id;
@@ -89,14 +96,13 @@ const updateBooking = async (req, res) => {
     await booking.save();
 
     return res.status(200).json({ message: 'Bokning uppdaterad', booking });
-
   } catch (error) {
-    console.error('❌ Fel i updateBooking:', error);
+    console.error('❌ Fel vid uppdatering av bokning:', error);
     return res.status(500).json({ message: 'Serverfel vid uppdatering av bokning' });
   }
 };
 
-// 📌 Raderar en bokning
+// 📌 Ta bort en bokning
 const deleteBooking = async (req, res) => {
   try {
     const bookingId = req.params.id;
@@ -112,9 +118,8 @@ const deleteBooking = async (req, res) => {
     await Booking.findByIdAndDelete(bookingId);
 
     return res.status(200).json({ message: 'Bokning borttagen' });
-
   } catch (error) {
-    console.error('❌ Fel i deleteBooking:', error);
+    console.error('❌ Fel vid borttagning av bokning:', error);
     return res.status(500).json({ message: 'Serverfel vid borttagning av bokning' });
   }
 };
