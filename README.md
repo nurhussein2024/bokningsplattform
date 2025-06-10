@@ -4,13 +4,13 @@ Funktioner
 🔐 Autentisering: Användare kan registrera sig, logga in och få en JWT-token för att autentisera sig vid API-anrop.
 
 <<<<<<< HEAD
-📅 Bokningar: Hantera bokningar av rum – skapa, uppdatera och ta bort bokningar.
+ Bokningar: Hantera bokningar av rum – skapa, uppdatera och ta bort bokningar.
 
-🏢 Rumshantering: Administratörer kan skapa, uppdatera och ta bort rum.
+Rumshantering: Administratörer kan skapa, uppdatera och ta bort rum.
 
-📡 Realtidsnotifikationer: Användare får realtidsnotifikationer via WebSocket när en bokning skapas eller uppdateras.
+ Realtidsnotifikationer: Användare får realtidsnotifikationer via WebSocket när en bokning skapas eller uppdateras.
 
-👥 Rollbaserad åtkomst: Systemet skiljer på administratörer och vanliga användare med olika behörigheter.
+ Rollbaserad åtkomst: Systemet skiljer på administratörer och vanliga användare med olika behörigheter.
 
 Tekniker som används
 Node.js – För serverhantering och backend-logik.
@@ -72,10 +72,3 @@ Skapa, uppdatera eller ta bort bokningar
 Få realtidsnotifikationer
  har du några frågor kontakta Nurhussein by Email in     nurhussein2003@yahoo.com
  
-=======
-1. **Klona projektet**:
-   ```bash
-   git clone https://github.com/nurhussein2024/bokningsplattform.git
-
-   https://bokningsplattform-4vb9.onrender.com/     ## det är hemsida till appen bara backend node och det är in render 
->>>>>>> 92c5d51 (allt är klart)
