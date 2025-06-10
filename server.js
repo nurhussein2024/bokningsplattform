@@ -30,6 +30,11 @@ app.set('io', io);
 
 app.use(cors());
 app.use(express.json());
+
+// ✅ Nytt: Servera statiska filer från roten av projektet (t.ex. client.html)
+app.use(express.static(__dirname));
+
+// Servera statiska filer från /public (t.ex. bilder eller CSS)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Anslut till MongoDB med konfiguration från .env
