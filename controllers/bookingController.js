@@ -29,6 +29,10 @@ const createBooking = async (req, res) => {
 
     await newBooking.save();
 
+    // 🔔 Skicka realtidsnotis via WebSocket
+    const io = req.app.get('io');
+    io.emit('newBooking', newBooking);
+
     res.status(201).json({ message: 'Bokning skapad', booking: newBooking });
   } catch (error) {
     console.error('Fel vid skapande av bokning:', error);
@@ -73,7 +77,7 @@ const updateBooking = async (req, res) => {
 
     const existingBooking = await Booking.findOne({
       room: booking.room,
-      _id: { $ne: id }, // Undanta nuvarande bokning
+      _id: { $ne: id },
       $or: [
         { startTime: { $lt: endTime }, endTime: { $gt: startTime } }
       ]
@@ -86,6 +90,10 @@ const updateBooking = async (req, res) => {
     booking.startTime = startTime;
     booking.endTime = endTime;
     await booking.save();
+
+    // 🔔 Skicka realtidsnotis vid uppdatering
+    const io = req.app.get('io');
+    io.emit('bookingUpdated', booking);
 
     res.status(200).json({ message: 'Bokning uppdaterad', booking });
   } catch (error) {
@@ -112,6 +120,10 @@ const deleteBooking = async (req, res) => {
     }
 
     await booking.remove();
+
+    // 🔔 Skicka realtidsnotis vid borttagning
+    const io = req.app.get('io');
+    io.emit('bookingDeleted', id);
 
     res.status(200).json({ message: 'Bokning borttagen' });
   } catch (error) {
