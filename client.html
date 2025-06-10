@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>Booking Notifications</title>
+  <title>Live Bokningsnotiser</title>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
@@ -13,14 +13,16 @@
   </style>
 </head>
 <body>
-  <h2>🔔 Live Booking Notifications</h2>
+  <h2>🔔 Live Bokningsnotiser</h2>
   <div class="log" id="log"></div>
 
   <script>
-    const socket = io('http://localhost:5000'); // غير البورت إذا لزم
+    // Anslut till Socket.IO-servern på Render
+    const socket = io('https://bokningsplattform-4vb9.onrender.com');
 
     const log = document.getElementById('log');
 
+    // Lägg till loggmeddelande i gränssnittet
     const addLog = (type, data) => {
       const div = document.createElement('div');
       div.className = `event ${type}`;
@@ -28,22 +30,27 @@
       log.prepend(div);
     };
 
+    // Anslutning etablerad
     socket.on('connect', () => {
       addLog('info', '🔌 Ansluten till servern via Socket.IO');
     });
 
-    socket.on('bookingCreated', (data) => {
+    // Ny bokning skapad
+    socket.on('newBooking', (data) => {
       addLog('created', data);
     });
 
+    // Bokning uppdaterad
     socket.on('bookingUpdated', (data) => {
       addLog('updated', data);
     });
 
-    socket.on('bookingDeleted', (id) => {
-      addLog('deleted', { id });
+    // Bokning raderad
+    socket.on('bookingDeleted', (data) => {
+      addLog('deleted', data);
     });
 
+    // Frånkoppling
     socket.on('disconnect', () => {
       addLog('info', '❌ Frånkopplad från servern');
     });
